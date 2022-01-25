@@ -196,6 +196,29 @@ class NFA(object):
         for eps in state.epsilon_transitions:
             self.addstate(eps, state_set)
 
+    def match_at_beginning(self, string_):
+        for i in range(len(string_) + 1):
+            if self.match(string_[0:i]) is True:
+                return True
+        return False
+
+    def match_at_end(self, string_):
+        for i in range(len(string_)):
+            if self.match(string_[i:len(string_)]) is True:
+                return True
+        return False
+
+    def get_substrings(self, string_, min_length):
+        substrings = [string_[i: j] for i in range(len(string_)) for j in range(i + 1, len(string_) + 1) if len(string_[i:j]) >= min_length]
+        return substrings
+
+    def match_anywhere(self, string_, min_length = 1):
+        substrings = self.get_substrings(string_, min_length)
+        for string_ in substrings:
+            if self.match(string_) is True:
+                return True
+        return False
+
     def match(self, string_):
         current_states = set()
         self.addstate(self.start, current_states)
@@ -275,8 +298,8 @@ class NFAbuilder(object):
         nfa.end.is_end = False
 
         start_state.epsilon_transitions.append(nfa.start)
-        nfa.end.epsilon_transitions.append(end_state)
         nfa.end.epsilon_transitions.append(nfa.start)
+        nfa.end.epsilon_transitions.append(end_state)
 
         nfa = NFA(start_state, end_state)
         self.nfa_stack.append(nfa)
@@ -331,14 +354,14 @@ class Compiler:
 
 def main():
 
-    pattern = "abc*d(a|s|d)"
+    pattern = "(a|s|d)(bc)?"
     print("Pattern: ", pattern)
 
 
     compiler = Compiler(pattern)
     automaton = compiler.compile()
 
-    match = automaton.match("abcccccccccds")
+    match = automaton.match_anywhere("aaasbcsdasd")
     print(match)
 
 
