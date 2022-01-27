@@ -1,6 +1,7 @@
 #Regex
 
 #Add the functionality for the DOT operator
+#Bug with the * and + operator, they return the same results
 
 
 class Token:
@@ -208,6 +209,7 @@ class NFA(object):
                 return True
         return False
 
+
     def get_substrings(self, string_, min_length):
         substrings = [string_[i: j] for i in range(len(string_)) for j in range(i + 1, len(string_) + 1) if len(string_[i:j]) >= min_length]
         return substrings
@@ -219,10 +221,32 @@ class NFA(object):
                 return True
         return False
 
+
+    def match_text(self, text, type = None):
+        match_list = []
+        if type == None:
+            for word in text.split():
+                if self.match_anywhere(word, 1) is True:
+                    match_list.append(word)
+        elif type == "whole":
+            for word in text.split():
+                if self.match(word) is True:
+                    match_list.append(word)
+        elif type == "end":
+            for word in text.split():
+                if self.match_at_end(word) is True:
+                    match_list.append(word)
+        elif type == "beginning":
+            for word in text.split():
+                if self.match_at_beginning(word) is True:
+                    match_list.append(word)
+
+        return match_list
+
+
     def match(self, string_):
         current_states = set()
         self.addstate(self.start, current_states)
-        print("String to match: ", string_)
         for char in string_:
             next_states = set()
             for state in current_states:
@@ -354,15 +378,16 @@ class Compiler:
 
 def main():
 
-    pattern = "(a|s|d)(bc)?"
+    pattern = "ba*"
     print("Pattern: ", pattern)
 
 
     compiler = Compiler(pattern)
     automaton = compiler.compile()
 
-    match = automaton.match_anywhere("aaasbcsdasd")
-    print(match)
+    text = "b"
+    match_list = automaton.match_text(text, "end")
+    print(match_list)
 
 
 if __name__ == '__main__':
