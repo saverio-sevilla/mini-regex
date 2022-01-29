@@ -1,8 +1,9 @@
 #Regex
 
-#Add the functionality for the DOT operator
-#Bug with the * and + operator, they return the same results
+#Add the DOT operator in the NFA
+#Add support for ranges ex: (a){1,4} -> (a|aa|aaa|aaaa)
 
+from PreprocessorLists import *
 
 class Token:
     def __init__(self, type, value):
@@ -14,6 +15,9 @@ class Token:
             type=self.type,
             value=repr(self.value)
         )
+
+    def __repr__(self):
+        return str(self)
 
 
 LPAREN = 'LPAREN'
@@ -43,36 +47,36 @@ RESERVED_SYMBOLS = {
 
 
 class Preprocessor:
+
+    '''
+    Handles the \w (any letter) and \d (any numeral) special characters,
+    also expands the ranges [0-9], [a-z],[A-Z],[a-zA-Z0-9] and [sym] (for symbols)
+    '''
     def __init__(self, text):
         self.text = text
         self.pos = 0
         self.length = len(text)
 
     def preprocess(self):
-        numbers = '(0|1|2|3|4|5|6|7|8|9)'
-        lower_letters = '(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)'
-        upper_letters = '(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)'
-        letters = '(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|' \
-                  's|t|u|v|w|x|y|z|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)'
 
-        self.text = self.text.replace('[0-9]', numbers)
-        self.text = self.text.replace('[a-z]', lower_letters)
-        self.text = self.text.replace('[A-Z]', upper_letters)
-
-        self.text = self.text.replace('\w', letters)
-        self.text = self.text.replace('\d', numbers)
-
+        self.text = self.text.replace('[0-9]', NUMBERS)
+        self.text = self.text.replace('[a-z]', LOWER)
+        self.text = self.text.replace('[A-Z]', UPPER)
+        self.text = self.text.replace('[a-zA-Z0-9]', ALPHANUM)
+        self.text = self.text.replace('\w', LETTERS)
+        self.text = self.text.replace('\d', NUMBERS)
+        self.text = self.text.replace('[sym]', SYMBOLS) #Test this
 
         while '[' in self.text: #For choice between elements
             beginning_index = self.text.find('[')
             end_index = self.text.find(']')
-            range = self.text[beginning_index:end_index + 1]
+            range_ = self.text[beginning_index:end_index + 1]
             range_string = self.text[beginning_index + 1:end_index]
             alt_string = '('
             for char in range_string:
                 alt_string = alt_string + char + '|'
             alt_string = alt_string.rstrip('|') + ')'
-            self.text = self.text.replace(range, alt_string)
+            self.text = self.text.replace(range_, alt_string)
 
         return self.text
 
@@ -139,7 +143,7 @@ class Parser:
             self.tokens.append(self.current_token)
             self.eat(self.current_token.type)
 
-        elif self.current_token.type == CONCAT: #Handles the expressions of type \(reserved_symbol)
+        elif self.current_token.type == CONCAT: #Handles the expressions \w, \d
             self.eat(CONCAT)
             token = self.current_token
             self.eat(token.type)
@@ -164,7 +168,6 @@ class State(object):
         self.transitions = {}
         self.is_end = False
         super().__init__()
-        #??????
 
     def __str__(self):
         f_str = "<Name: {}, transitions = {}, epsilon_transitions = {}>"
@@ -174,12 +177,14 @@ class State(object):
             repr(self.epsilon_transitions)
         )
 
+    def __repr__(self):
+        return str(self)
+
     def create_transition(self, key, state):
         if key in self.transitions:
             self.transitions[key].append(state)
         else:
             self.transitions[key] = state
-            #Creates a list so more than one transition can correspond to one key
 
 
 class NFA(object):
@@ -190,7 +195,7 @@ class NFA(object):
         self.epsilon_states = set()
         end.is_end = True
 
-    def addstate(self, state, state_set):  # add state + recursively add epsilon transitions
+    def addstate(self, state, state_set):
         if state in state_set:
             return
         state_set.add(state)
@@ -208,7 +213,6 @@ class NFA(object):
             if self.match(string_[i:len(string_)]) is True:
                 return True
         return False
-
 
     def get_substrings(self, string_, min_length):
         substrings = [string_[i: j] for i in range(len(string_)) for j in range(i + 1, len(string_) + 1) if len(string_[i:j]) >= min_length]
@@ -256,8 +260,8 @@ class NFA(object):
 
             current_states = next_states
 
-        for string_ in current_states:
-            if string_.is_end:
+        for state in current_states:
+            if state.is_end:
                 return True
         return False
 
@@ -283,6 +287,7 @@ class NFAbuilder(object):
             elif token.type is ALT:
                 self.alt_nfa()
         return self.nfa_stack
+
 
     def char_nfa(self, token):
         start_state = State()
@@ -378,15 +383,15 @@ class Compiler:
 
 def main():
 
-    pattern = "ba*"
+    pattern = "a"
     print("Pattern: ", pattern)
 
 
     compiler = Compiler(pattern)
     automaton = compiler.compile()
 
-    text = "b"
-    match_list = automaton.match_text(text, "end")
+    text = "a"
+    match_list = automaton.match(text)
     print(match_list)
 
 
