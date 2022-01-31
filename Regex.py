@@ -101,6 +101,7 @@ class Lexer:
             return Token(EOF, '')
 
 
+
 class Parser:
     def __init__(self, lexer):
         self.lexer = lexer
@@ -362,6 +363,7 @@ class NFAbuilder(object):
 
 
 class Compiler:
+
     def __init__(self, pattern):
         self.pattern = pattern
 
@@ -381,16 +383,36 @@ class Compiler:
         return automaton
 
 
+class CaptureEngine:
+    '''
+    Will eventually handle captures Ex. abc*{(de)*}90{[0-9]} -->
+        match abc* to begin, don't capture, remove the match from the string
+        match (de)*, execute capture and remove from string
+        match 90, don't capture, remove from string
+        match [0-9], capture and remove from string
+
+        return list of captures
+    '''
+
+    def __init__(self, pattern, compiler):
+        self.pattern = pattern
+        self.compiler = compiler
+
+
+
+
+
+
 def main():
 
-    pattern = "a"
+    pattern = "abc*(de)+"
     print("Pattern: ", pattern)
 
 
     compiler = Compiler(pattern)
     automaton = compiler.compile()
 
-    text = "a"
+    text = "abcccccdedede"
     match_list = automaton.match(text)
     print(match_list)
 
