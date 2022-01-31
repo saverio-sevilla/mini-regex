@@ -49,9 +49,10 @@ RESERVED_SYMBOLS = {
 class Preprocessor:
 
     '''
-    Handles the \w (any letter) and \d (any numeral) special characters,
-    also expands the ranges [0-9], [a-z],[A-Z],[a-zA-Z0-9] and [sym] (for symbols)
+    Handles the special escape equences \w (any letter) and \d (any numeral)
+    also expands the constructs [0-9], [a-z], [A-Z], [a-zA-Z0-9]
     '''
+
     def __init__(self, text):
         self.text = text
         self.pos = 0
@@ -107,9 +108,6 @@ class Preprocessor:
         return self.text
 
 
-
-
-
 class Lexer:
     def __init__(self, text):
         self.text = text
@@ -128,7 +126,6 @@ class Lexer:
             return token
         else:
             return Token(EOF, '')
-
 
 
 class Parser:
@@ -258,7 +255,6 @@ class NFA(object):
                 match_list.append(string_)
         return match_list
 
-
     def match_text(self, text, type = None):
         match_list = []
         if type == None:
@@ -280,7 +276,6 @@ class NFA(object):
 
         return match_list
 
-
     def match(self, string_):
         current_states = set()
         self.addstate(self.start, current_states)
@@ -297,6 +292,7 @@ class NFA(object):
             if state.is_end:
                 return True
         return False
+
 
 
 class NFAbuilder(object):
