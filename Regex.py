@@ -204,38 +204,41 @@ class NFA(object):
             self.addstate(eps, state_set)
 
     def match_at_beginning(self, string_):
+        match_list = []
         for i in range(len(string_) + 1):
             if self.match(string_[0:i]) is True:
-                return True
-        return False
+                match_list.append(string_[0:i])
+        return match_list
 
     def match_at_end(self, string_):
+        match_list = []
         for i in range(len(string_)):
             if self.match(string_[i:len(string_)]) is True:
-                return True
-        return False
+                match_list.append(string_[i:len(string_)])
+        return match_list
 
     def get_substrings(self, string_, min_length):
         substrings = [string_[i: j] for i in range(len(string_)) for j in range(i + 1, len(string_) + 1) if len(string_[i:j]) >= min_length]
         return substrings
 
     def match_anywhere(self, string_, min_length = 1):
+        match_list = []
         substrings = self.get_substrings(string_, min_length)
         for string_ in substrings:
             if self.match(string_) is True:
-                return True
-        return False
+                match_list.append(string_)
+        return match_list
 
 
     def match_text(self, text, type = None):
         match_list = []
         if type == None:
             for word in text.split():
-                if self.match_anywhere(word, 1) is True:
-                    match_list.append(word)
-        elif type == "whole":
-            for word in text.split():
                 if self.match(word) is True:
+                    match_list.append(word)
+        elif type == "any":
+            for word in text.split():
+                if self.match_anywhere(word) is True:
                     match_list.append(word)
         elif type == "end":
             for word in text.split():
@@ -362,59 +365,49 @@ class NFAbuilder(object):
         self.nfa_stack.append(nfa)
 
 
-class Compiler:
+def regex(pattern, text, mode = "standard"):
 
-    def __init__(self, pattern):
-        self.pattern = pattern
+    preprocessor = Preprocessor(pattern)
+    pattern = preprocessor.preprocess()
+    lexer = Lexer(pattern)
+    parser = Parser(lexer)
+    postfix_pattern = parser.postfix()
 
-    def compile(self):
-        preprocessor = Preprocessor(self.pattern)
-        self.pattern = preprocessor.preprocess()
-        lexer = Lexer(self.pattern)
-        parser = Parser(lexer)
-        postfix_pattern = parser.postfix()
+    nfa_stack = NFAbuilder(postfix_pattern).analyse()
+    if len(nfa_stack) != 1:
+        print("Error")
 
-        nfa_stack = NFAbuilder(postfix_pattern).analyse()
-        if len(nfa_stack) != 1:
-            print("Error")
+    automaton = nfa_stack[0]
 
-        automaton = nfa_stack[0]
+    if mode == "standard":
+        match = automaton.match(text)
+        return match
 
-        return automaton
+    elif mode == "begin":
+        match = automaton.match_at_beginning(text)
+        return match
 
+    elif mode == "end":
+        match = automaton.match_at_end(text)
+        return match
 
-class CaptureEngine:
-    '''
-    Will eventually handle captures Ex. abc*{(de)*}90{[0-9]} -->
-        match abc* to begin, don't capture, remove the match from the string
-        match (de)*, execute capture and remove from string
-        match 90, don't capture, remove from string
-        match [0-9], capture and remove from string
+    elif mode == "any":
+        match = automaton.match_anywhere(text)
+        return match
 
-        return list of captures
-    '''
-
-    def __init__(self, pattern, compiler):
-        self.pattern = pattern
-        self.compiler = compiler
-
-
-
-
+    elif mode == "words":
+        match = automaton.match_text(text)
+        return match
 
 
 def main():
 
-    pattern = "abc*(de)+"
+    pattern = "ab*"
     print("Pattern: ", pattern)
+    text = "a ab abb abbb abbbc"
 
 
-    compiler = Compiler(pattern)
-    automaton = compiler.compile()
-
-    text = "abcccccdedede"
-    match_list = automaton.match(text)
-    print(match_list)
+    print(regex(pattern, text, "words"))
 
 
 if __name__ == '__main__':
