@@ -276,6 +276,7 @@ class NFA(object):
 
         return match_list
 
+
     def match(self, string_):
         current_states = set()
         self.addstate(self.start, current_states)
@@ -423,6 +424,9 @@ def regex(pattern, text, mode = "standard"):
     elif mode == "words":
         match = automaton.match_text(text)
         return match
+
+def capture(pattern, text)
+    pass
 
 
 def main():
