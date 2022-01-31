@@ -67,18 +67,47 @@ class Preprocessor:
         self.text = self.text.replace('\d', NUMBERS)
         self.text = self.text.replace('[sym]', SYMBOLS) #Test this
 
-        while '[' in self.text: #For choice between elements
+        while '/' in self.text:
+
+            # Handles ranges with structure:  /()[2:5]/
+
+            beginning_index = self.text.find('/') + 1
+            end_index = beginning_index + self.text[beginning_index:].find('/')
+
+            statement = self.text[beginning_index - 1: end_index + 1]
+            expression = statement[1:statement.find('[')]
+            range_ = statement[statement.find('[') + 1:-2]
+
+            low_range = int(range_[0: range_.find(':')])
+            high_range = int(range_[range_.find(':') + 1:])
+
+            range_statement = "("
+
+            for i in range(low_range, high_range + 1):
+                range_statement = range_statement + expression * i + '|'
+
+            range_statement = range_statement.rstrip('|') + ')'
+            self.text = self.text.replace(statement, range_statement)
+
+        while '[' in self.text:
+
+            # For tokens of type [abc] which corresponds to (a|b|c)
+            # Cannot be nested
+
             beginning_index = self.text.find('[')
             end_index = self.text.find(']')
-            range_ = self.text[beginning_index:end_index + 1]
-            range_string = self.text[beginning_index + 1:end_index]
+            elements_plus_parenthesis = self.text[beginning_index:end_index + 1]
+            elements = self.text[beginning_index + 1:end_index]
             alt_string = '('
-            for char in range_string:
+            for char in elements:
                 alt_string = alt_string + char + '|'
             alt_string = alt_string.rstrip('|') + ')'
-            self.text = self.text.replace(range_, alt_string)
+            self.text = self.text.replace(elements_plus_parenthesis, alt_string)
 
         return self.text
+
+
+
 
 
 class Lexer:
@@ -402,9 +431,9 @@ def regex(pattern, text, mode = "standard"):
 
 def main():
 
-    pattern = "ab*"
+    pattern = "/(ab*)[2:4]/"
     print("Pattern: ", pattern)
-    text = "a ab abb abbb abbbc"
+    text = "a ab ac abb abab abbb abbbc"
 
 
     print(regex(pattern, text, "words"))
