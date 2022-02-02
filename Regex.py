@@ -1,7 +1,13 @@
-#Regex
+# Regex
 
-#Add the DOT operator in the NFA
-#Add support for ranges ex: (a){1,4} -> (a|aa|aaa|aaaa)
+import re # Remove dependency as soon as possible, regex is used only
+from itertools import combinations
+
+# to split the string for the capture_greedy function
+
+# Add the DOT operator in the NFA
+# Add functions to handle whitespaces
+# Add captures
 
 from PreprocessorLists import *
 
@@ -106,6 +112,36 @@ class Preprocessor:
             self.text = self.text.replace(elements_plus_parenthesis, alt_string)
 
         return self.text
+
+class SyntaxChecker:
+
+    def __init__(self, text):
+        self.text = text
+
+    def check_parentheses(self):
+        open_par = ["[", "{", "("]
+        closed_par = ["]", "}", ")"]
+        stack = []
+        for i in self.text:
+            if i in open_par:
+                stack.append(i)
+            elif i in closed_par:
+                pos = closed_par.index(i)
+                if ((len(stack) > 0) and
+                        (open_par[pos] == stack[len(stack) - 1])):
+                    stack.pop()
+                else:
+                    return "Unbalanced"
+        if len(stack) == 0:
+            return 1
+        else:
+            return 0
+
+    def check_symbols(self):
+        symbols = ["?" , "+" , "*", "|"]
+        concat = list(combinations(["hel", "lo", "bye"], 2))
+
+
 
 
 class Lexer:
@@ -400,6 +436,7 @@ def regex(pattern, text, mode = "standard"):
     postfix_pattern = parser.postfix()
 
     nfa_stack = NFAbuilder(postfix_pattern).analyse()
+
     if len(nfa_stack) != 1:
         print("Error")
 
@@ -425,18 +462,62 @@ def regex(pattern, text, mode = "standard"):
         match = automaton.match_text(text)
         return match
 
-def capture(pattern, text)
-    pass
+def capture_greedy(pattern, text):
+
+    strings = re.split('([{|}])', pattern)
+    print(strings)
+
+    expressions = []
+    captures = []
+
+    for i, string in enumerate(strings):
+        if string not in '{}':
+            if i == 0:
+                expressions.append(["normal", string[i]])
+            if i > 0:
+                if strings[i-1] is '{':
+                    expressions.append(["capture", strings[i]])
+                else:
+                    expressions.append(["normal", strings[i]])
+
+    print("expressions: ", expressions)
+
+    for list in expressions:
+
+
+        if list[0] is "normal":
+            match = regex(str(list[1]), text, "begin")
+            if not match:
+                print("Error: match not found between normal pattern: ", list[1], "and string: ", text )
+                return 0
+            print("normal match (longest): ", match[-1], "text: ", text)
+            text = text.replace(match[-1], "", 1)
+            print("newtext:", text)
+
+
+        elif list[0] is "capture":
+            match = regex(list[1], text, "begin")
+            if not match:
+                print("Error: match not found between capture pattern: ", list[1], "and string: ", text)
+                return 0
+            print("capture match (longest): ",match[-1], "text: ", text)
+            captures.append(match[-1])
+            text = text.replace(match[-1], "", 1)
+            print("newtext:", text)
+
+    return captures
 
 
 def main():
 
-    pattern = "/(ab*)[2:4]/"
-    print("Pattern: ", pattern)
-    text = "a ab ac abb abab abbb abbbc"
+    #pattern = "a*"
+    #print("Pattern: ", pattern)
+    #text = "aaaaaaa"
 
 
-    print(regex(pattern, text, "words"))
+    #print(regex(pattern, text, "begin"))
+
+    print(capture_greedy("A{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
 
 
 if __name__ == '__main__':
