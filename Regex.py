@@ -1,9 +1,12 @@
 # Regex
 
-import re # Remove dependency as soon as possible, regex is used only
+import re
+# Remove dependency as soon as possible, regex is used only
+# to split the string for the capture_greedy function
+
 from itertools import combinations
 
-# to split the string for the capture_greedy function
+
 
 # Add the DOT operator in the NFA
 # Add functions to handle whitespaces
@@ -517,7 +520,7 @@ def main():
 
     #print(regex(pattern, text, "begin"))
 
-    print(capture_greedy("A{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
+    print(capture_greedy("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
 
 
 if __name__ == '__main__':
