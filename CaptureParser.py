@@ -14,8 +14,7 @@ def captureParser(pattern):
     if buffer is not "":
         strings.append(buffer)
 
+    strings = list(filter(None, strings))
+
     return strings
 
-
-
-print(captureParser("{}asa{sadasd}{asda}ssda{asd}"))

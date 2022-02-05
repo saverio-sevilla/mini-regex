@@ -1,16 +1,11 @@
 # Regex
 
-import re
-# Remove dependency as soon as possible, regex is used only
-# to split the string for the capture_greedy function
 
-from itertools import combinations
-
-
+from CaptureParser import captureParser
 
 # Add the DOT operator in the NFA
 # Add functions to handle whitespaces
-# Add captures
+
 
 from PreprocessorLists import *
 
@@ -139,11 +134,6 @@ class SyntaxChecker:
             return 1
         else:
             return 0
-
-    def check_symbols(self):
-        symbols = ["?" , "+" , "*", "|"]
-        concat = list(combinations(["hel", "lo", "bye"], 2))
-
 
 
 
@@ -467,8 +457,8 @@ def regex(pattern, text, mode = "standard"):
 
 def capture_greedy(pattern, text):
 
-    strings = re.split('([{|}])', pattern)
-    print(strings)
+    strings = captureParser(pattern)
+    print("captureParser: ",strings)
 
     expressions = []
     captures = []
