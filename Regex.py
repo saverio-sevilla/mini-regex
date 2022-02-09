@@ -1,6 +1,3 @@
-# Regex
-
-
 from CaptureParser import captureParser
 
 # Add the DOT operator in the NFA
@@ -50,93 +47,6 @@ RESERVED_SYMBOLS = {
 }
 
 
-class Preprocessor:
-
-    '''
-    Handles the special escape equences \w (any letter) and \d (any numeral)
-    also expands the constructs [0-9], [a-z], [A-Z], [a-zA-Z0-9]
-    '''
-
-    def __init__(self, text):
-        self.text = text
-        self.pos = 0
-        self.length = len(text)
-
-    def preprocess(self):
-
-        self.text = self.text.replace('[0-9]', NUMBERS)
-        self.text = self.text.replace('[a-z]', LOWER)
-        self.text = self.text.replace('[A-Z]', UPPER)
-        self.text = self.text.replace('[a-zA-Z0-9]', ALPHANUM)
-        self.text = self.text.replace('\w', LETTERS)
-        self.text = self.text.replace('\d', NUMBERS)
-        self.text = self.text.replace('[sym]', SYMBOLS) #Test this
-
-        while '/' in self.text:
-
-            # Handles ranges with structure:  /()[2:5]/
-
-            beginning_index = self.text.find('/') + 1
-            end_index = beginning_index + self.text[beginning_index:].find('/')
-
-            statement = self.text[beginning_index - 1: end_index + 1]
-            expression = statement[1:statement.find('[')]
-            range_ = statement[statement.find('[') + 1:-2]
-
-            low_range = int(range_[0: range_.find(':')])
-            high_range = int(range_[range_.find(':') + 1:])
-
-            range_statement = "("
-
-            for i in range(low_range, high_range + 1):
-                range_statement = range_statement + expression * i + '|'
-
-            range_statement = range_statement.rstrip('|') + ')'
-            self.text = self.text.replace(statement, range_statement)
-
-        while '[' in self.text:
-
-            # For tokens of type [abc] which corresponds to (a|b|c)
-            # Cannot be nested
-
-            beginning_index = self.text.find('[')
-            end_index = self.text.find(']')
-            elements_plus_parenthesis = self.text[beginning_index:end_index + 1]
-            elements = self.text[beginning_index + 1:end_index]
-            alt_string = '('
-            for char in elements:
-                alt_string = alt_string + char + '|'
-            alt_string = alt_string.rstrip('|') + ')'
-            self.text = self.text.replace(elements_plus_parenthesis, alt_string)
-
-        return self.text
-
-class SyntaxChecker:
-
-    def __init__(self, text):
-        self.text = text
-
-    def check_parentheses(self):
-        open_par = ["[", "{", "("]
-        closed_par = ["]", "}", ")"]
-        stack = []
-        for i in self.text:
-            if i in open_par:
-                stack.append(i)
-            elif i in closed_par:
-                pos = closed_par.index(i)
-                if ((len(stack) > 0) and
-                        (open_par[pos] == stack[len(stack) - 1])):
-                    stack.pop()
-                else:
-                    return "Unbalanced"
-        if len(stack) == 0:
-            return 1
-        else:
-            return 0
-
-
-
 class Lexer:
     def __init__(self, text):
         self.text = text
@@ -158,6 +68,12 @@ class Lexer:
 
 
 class Parser:
+
+    '''
+    Recursive descent parser, returns a sequence of tokens in
+    postfix order
+    '''
+
     def __init__(self, lexer):
         self.lexer = lexer
         self.tokens = []
@@ -167,7 +83,7 @@ class Parser:
         if self.current_token.type == name:
             self.current_token = self.lexer.get_token()
         elif self.current_token.type != name:
-            print("Expected: ", type, "got: ", self.current_token.type, " damn \n")
+            raise TypeError("Expected: ", type, "got: ", self.current_token.type, "\n")
 
     def altern(self):
         self.concat()
@@ -199,7 +115,8 @@ class Parser:
             self.tokens.append(self.current_token)
             self.eat(self.current_token.type)
 
-        elif self.current_token.type == CONCAT: #Handles the expressions \w, \d
+        elif self.current_token.type == CONCAT:
+            # handles tokens of type \w and \d
             self.eat(CONCAT)
             token = self.current_token
             self.eat(token.type)
@@ -420,7 +337,7 @@ class NFAbuilder(object):
         self.nfa_stack.append(nfa)
 
 
-def regex(pattern, text, mode = "standard"):
+def regex(pattern, text, mode="standard"):
 
     preprocessor = Preprocessor(pattern)
     pattern = preprocessor.preprocess()
@@ -503,12 +420,12 @@ def capture_greedy(pattern, text):
 
 def main():
 
-    #pattern = "a*"
-    #print("Pattern: ", pattern)
-    #text = "aaaaaaa"
+    pattern = "abc*\d"
+    print("Pattern: ", pattern)
+    text = "abccc1"
 
 
-    #print(regex(pattern, text, "begin"))
+    print(regex(pattern, text))
 
     print(capture_greedy("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
 

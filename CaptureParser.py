@@ -1,4 +1,9 @@
 def captureParser(pattern):
+    '''
+    splits the regex pattern using { and } as delimiters,
+    returns the list of separated strings which include the
+    delimiters
+    '''
     strings = []
     buffer = ""
     for char in pattern:
