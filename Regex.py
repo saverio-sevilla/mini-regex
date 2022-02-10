@@ -1,14 +1,9 @@
-from CaptureParser import captureParser
+from PreprocessorLists import Preprocessor
 
-# Add the DOT operator in the NFA
-# Add functions to handle whitespaces
-
-
-from PreprocessorLists import *
 
 class Token:
-    def __init__(self, type, value):
-        self.type = type
+    def __init__(self, type_, value):
+        self.type = type_
         self.value = value
 
     def __str__(self):
@@ -68,12 +63,8 @@ class Lexer:
 
 
 class Parser:
-
-    '''
-    Recursive descent parser, returns a sequence of tokens in
-    postfix order
-    '''
-
+    # Recursive descent parser, returns the sequence of tokens in
+    # postfix order
     def __init__(self, lexer):
         self.lexer = lexer
         self.tokens = []
@@ -131,6 +122,7 @@ class Parser:
 class State(object):
 
     count = 0
+
     def __init__(self, name=None):
         if name is None:
             name = str(self.count)
@@ -189,11 +181,13 @@ class NFA(object):
                 match_list.append(string_[i:len(string_)])
         return match_list
 
-    def get_substrings(self, string_, min_length):
-        substrings = [string_[i: j] for i in range(len(string_)) for j in range(i + 1, len(string_) + 1) if len(string_[i:j]) >= min_length]
+    @staticmethod
+    def get_substrings(string_, min_length):
+        substrings = [string_[i: j] for i in range(len(string_))
+                      for j in range(i + 1, len(string_) + 1) if len(string_[i:j]) >= min_length]
         return substrings
 
-    def match_anywhere(self, string_, min_length = 1):
+    def match_anywhere(self, string_, min_length=1):
         match_list = []
         substrings = self.get_substrings(string_, min_length)
         for string_ in substrings:
@@ -201,27 +195,26 @@ class NFA(object):
                 match_list.append(string_)
         return match_list
 
-    def match_text(self, text, type = None):
+    def match_text(self, text, type_=None):
         match_list = []
-        if type == None:
+        if type_ is None:
             for word in text.split():
                 if self.match(word) is True:
                     match_list.append(word)
-        elif type == "any":
+        elif type_ == "any":
             for word in text.split():
                 if self.match_anywhere(word) is True:
                     match_list.append(word)
-        elif type == "end":
+        elif type_ == "end":
             for word in text.split():
                 if self.match_at_end(word) is True:
                     match_list.append(word)
-        elif type == "beginning":
+        elif type_ == "beginning":
             for word in text.split():
                 if self.match_at_beginning(word) is True:
                     match_list.append(word)
 
         return match_list
-
 
     def match(self, string_):
         current_states = set()
@@ -239,7 +232,6 @@ class NFA(object):
             if state.is_end:
                 return True
         return False
-
 
 
 class NFAbuilder(object):
@@ -263,7 +255,6 @@ class NFAbuilder(object):
             elif token.type is ALT:
                 self.alt_nfa()
         return self.nfa_stack
-
 
     def char_nfa(self, token):
         start_state = State()
@@ -339,6 +330,13 @@ class NFAbuilder(object):
 
 def regex(pattern, text, mode="standard"):
 
+    if pattern[0] == '^':
+        pattern = pattern[1:]
+        mode = "start"
+    elif pattern[0] == '$':
+        pattern = pattern[1:]
+        mode = "end"
+
     preprocessor = Preprocessor(pattern)
     pattern = preprocessor.preprocess()
     lexer = Lexer(pattern)
@@ -356,7 +354,7 @@ def regex(pattern, text, mode="standard"):
         match = automaton.match(text)
         return match
 
-    elif mode == "begin":
+    elif mode == "start":
         match = automaton.match_at_beginning(text)
         return match
 
@@ -372,11 +370,17 @@ def regex(pattern, text, mode="standard"):
         match = automaton.match_text(text)
         return match
 
-def capture_greedy(pattern, text):
 
-    strings = captureParser(pattern)
-    print("captureParser: ",strings)
+def parse_capture(pattern):
+    tokens = pattern.replace("{", "\n{\n").replace("}", "\n}\n").split("\n")
+    tokens = list(filter(None, tokens))
+    return tokens
 
+
+def match_capture(pattern, text):
+
+    strings = parse_capture(pattern)
+    tmp_text = text
     expressions = []
     captures = []
 
@@ -390,44 +394,25 @@ def capture_greedy(pattern, text):
                 else:
                     expressions.append(["normal", strings[i]])
 
-    print("expressions: ", expressions)
-
-    for list in expressions:
-
-
-        if list[0] is "normal":
-            match = regex(str(list[1]), text, "begin")
-            if not match:
-                print("Error: match not found between normal pattern: ", list[1], "and string: ", text )
-                return 0
-            print("normal match (longest): ", match[-1], "text: ", text)
-            text = text.replace(match[-1], "", 1)
-            print("newtext:", text)
-
-
-        elif list[0] is "capture":
-            match = regex(list[1], text, "begin")
-            if not match:
-                print("Error: match not found between capture pattern: ", list[1], "and string: ", text)
-                return 0
-            print("capture match (longest): ",match[-1], "text: ", text)
+    for expression in expressions:
+        match = regex(str(expression[1]), tmp_text, "start")
+        if not match:
+            raise ValueError("Error: match not found between normal pattern: ", expression[1], "and string: ", tmp_text)
+        tmp_text = tmp_text.replace(match[-1], "", 1)  # Remove the matched string from the text
+        if expression[0] is "capture":
             captures.append(match[-1])
-            text = text.replace(match[-1], "", 1)
-            print("newtext:", text)
 
     return captures
 
 
 def main():
 
-    pattern = "abc*\d"
+    pattern = r"/(  )[2:5]/"
     print("Pattern: ", pattern)
-    text = "abccc1"
-
+    text = "    "
 
     print(regex(pattern, text))
-
-    print(capture_greedy("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
+    print(match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
 
 
 if __name__ == '__main__':
