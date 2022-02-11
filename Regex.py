@@ -1,4 +1,6 @@
+import logging
 from PreprocessorLists import Preprocessor
+logging.basicConfig(level=logging.ERROR)
 
 
 class Token:
@@ -74,7 +76,8 @@ class Parser:
         if self.current_token.type == name:
             self.current_token = self.lexer.get_token()
         elif self.current_token.type != name:
-            raise TypeError("Expected: ", type, "got: ", self.current_token.type, "\n")
+            logging.error("Unexpected token found, expected {type},"
+                          " found: {found_type}".format(type=name, found_type=self.current_token.type))
 
     def altern(self):
         self.concat()
@@ -168,6 +171,7 @@ class NFA(object):
             self.addstate(eps, state_set)
 
     def match_at_beginning(self, string_):
+        logging.debug("Called match_at_beginning with string {str}".format(str=string_))
         match_list = []
         for i in range(len(string_) + 1):
             if self.match(string_[0:i]) is True:
@@ -175,6 +179,7 @@ class NFA(object):
         return match_list
 
     def match_at_end(self, string_):
+        logging.debug("Called match_at_end with string {str}".format(str=string_))
         match_list = []
         for i in range(len(string_)):
             if self.match(string_[i:len(string_)]) is True:
@@ -188,14 +193,19 @@ class NFA(object):
         return substrings
 
     def match_anywhere(self, string_, min_length=1):
+        logging.debug("Called match_anywhere with string {str} and"
+                      " min_length of substrings {min_length}".format(str=string_, min_length=min_length))
         match_list = []
         substrings = self.get_substrings(string_, min_length)
         for string_ in substrings:
             if self.match(string_) is True:
                 match_list.append(string_)
+        if match_list is not None:
+            logging.debug("match_anywhere found at least 1 match")
         return match_list
 
     def match_text(self, text, type_=None):
+        logging.debug("Called match_text")
         match_list = []
         if type_ is None:
             for word in text.split():
@@ -217,6 +227,7 @@ class NFA(object):
         return match_list
 
     def match(self, string_):
+        logging.debug("Called match with string {str}".format(str=string_))
         current_states = set()
         self.addstate(self.start, current_states)
         for char in string_:
@@ -230,7 +241,9 @@ class NFA(object):
 
         for state in current_states:
             if state.is_end:
+                logging.debug("Match returned True")
                 return True
+        logging.debug("Match returned False")
         return False
 
 
@@ -346,7 +359,7 @@ def regex(pattern, text, mode="standard"):
     nfa_stack = NFAbuilder(postfix_pattern).analyse()
 
     if len(nfa_stack) != 1:
-        print("Error")
+        logging.error("The NFA stack has length other than 1")
 
     automaton = nfa_stack[0]
 
@@ -374,6 +387,7 @@ def regex(pattern, text, mode="standard"):
 def parse_capture(pattern):
     tokens = pattern.replace("{", "\n{\n").replace("}", "\n}\n").split("\n")
     tokens = list(filter(None, tokens))
+    logging.debug("Called parse_capture on pattern {ptrn}".format(ptrn=pattern))
     return tokens
 
 
@@ -397,10 +411,14 @@ def match_capture(pattern, text):
     for expression in expressions:
         match = regex(str(expression[1]), tmp_text, "start")
         if not match:
-            raise ValueError("Error: match not found between normal pattern: ", expression[1], "and string: ", tmp_text)
+            logging.warning("Match not found between capture pattern"
+                            " {pt} and string {str}".format(pt=expression[1], str=str(tmp_text)))
+            return False
         tmp_text = tmp_text.replace(match[-1], "", 1)  # Remove the matched string from the text
+        logging.debug("Removed captured string from text, updated text: {txt} ".format(txt=str(tmp_text)))
         if expression[0] is "capture":
             captures.append(match[-1])
+            logging.debug("Appended string {str} to captures".format(str=match[-1]))
 
     return captures
 

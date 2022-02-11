@@ -1,3 +1,6 @@
+import logging
+
+
 NUMBERS = '(0|1|2|3|4|5|6|7|8|9)'
 LOWER = '(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)'
 UPPER = '(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)'
@@ -36,7 +39,8 @@ class Preprocessor:
             # expressions of type (a|b|c)
 
             if self.text.find('[') > self.text.find(']'):
-                raise SyntaxError("Missing matched parenthesis in alternation expression")
+                logging.error("Missing matched parenthesis in alternation expression")
+                raise ValueError
 
             full_el = self.text[self.text.find('['):   self.text.find(']') + 1]
             altern = ''
@@ -55,7 +59,8 @@ class Preprocessor:
             end_index = beginning_index + self.text[beginning_index:].find('/')
 
             if end_index == -1:
-                raise SyntaxError("Did not find matching / in range expression")
+                logging.error("Did not find matching / in range expression")
+                raise SyntaxError
 
             statement = self.text[beginning_index - 1: end_index + 1]
             expression = statement[1:statement.find('[')]  # expression to be repeated
@@ -84,11 +89,13 @@ class Preprocessor:
                         (open_par[pos] == stack[len(stack) - 1])):
                     stack.pop()
                 else:
-                    raise SyntaxError("Unbalanced parentheses found")
+                    logging.error("Found unbalanced parentheses")
+                    raise SyntaxError
         if len(stack) == 0:
             return 1
         else:
-            return 0
+            logging.error("Found unbalanced parentheses")
+            raise SyntaxError
 
     def preprocess(self):  # Cannot have ranges and alternatives together
         self.replace_special_symbols()
