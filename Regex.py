@@ -343,12 +343,18 @@ class NFAbuilder(object):
 
 def regex(pattern, text, mode="standard"):
 
-    if pattern[0] == '^':
-        pattern = pattern[1:]
-        mode = "start"
-    elif pattern[0] == '$':
-        pattern = pattern[1:]
-        mode = "end"
+    if pattern == "":
+        if text == "":
+            return True
+        return False
+
+    if pattern not in ("", "$", "^"):
+        if pattern[0] == '^':
+            pattern = pattern[1:]
+            mode = "start"
+        elif pattern[-1] == '$':
+            pattern = pattern[:-1]
+            mode = "end"
 
     preprocessor = Preprocessor(pattern)
     pattern = preprocessor.preprocess()
@@ -367,9 +373,16 @@ def regex(pattern, text, mode="standard"):
         match = automaton.match(text)
         return match
 
-    elif mode == "start":
+    elif mode == "start_capture":
         match = automaton.match_at_beginning(text)
         return match
+
+    elif mode == "start":
+        match = automaton.match_at_beginning(text)
+        if match:
+            return True
+        else:
+            return False
 
     elif mode == "end":
         match = automaton.match_at_end(text)
@@ -393,8 +406,8 @@ def parse_capture(pattern):
 
 def match_capture(pattern, text):
 
-    strings = parse_capture(pattern)
     tmp_text = text
+    strings = parse_capture(pattern)
     expressions = []
     captures = []
 
@@ -409,7 +422,7 @@ def match_capture(pattern, text):
                     expressions.append(["normal", strings[i]])
 
     for expression in expressions:
-        match = regex(str(expression[1]), tmp_text, "start")
+        match = regex(str(expression[1]), tmp_text, "start_capture")
         if not match:
             logging.warning("Match not found between capture pattern"
                             " {pt} and string {str}".format(pt=expression[1], str=str(tmp_text)))
@@ -425,9 +438,9 @@ def match_capture(pattern, text):
 
 def main():
 
-    pattern = r"/(  )[2:5]/"
+    pattern = r"(a|b)*"
     print("Pattern: ", pattern)
-    text = "    "
+    text = "aaabaaaa"
 
     print(regex(pattern, text))
     print(match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
