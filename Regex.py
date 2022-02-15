@@ -1,3 +1,5 @@
+# Regex
+
 import logging
 from PreprocessorLists import Preprocessor
 logging.basicConfig(level=logging.ERROR)
@@ -405,21 +407,24 @@ def parse_capture(pattern):
 
 
 def match_capture(pattern, text):
-
     tmp_text = text
     strings = parse_capture(pattern)
     expressions = []
     captures = []
 
+    logging.debug("Strings: ", strings)
+
     for i, string in enumerate(strings):
         if string not in '{}':
             if i == 0:
-                expressions.append(["normal", string[i]])
+                expressions.append(["normal", strings[i]])
             if i > 0:
                 if strings[i-1] is '{':
                     expressions.append(["capture", strings[i]])
                 else:
                     expressions.append(["normal", strings[i]])
+
+    logging.debug("Expressions: ", expressions)
 
     for expression in expressions:
         match = regex(str(expression[1]), tmp_text, "start_capture")
@@ -427,8 +432,10 @@ def match_capture(pattern, text):
             logging.warning("Match not found between capture pattern"
                             " {pt} and string {str}".format(pt=expression[1], str=str(tmp_text)))
             return False
+
         tmp_text = tmp_text.replace(match[-1], "", 1)  # Remove the matched string from the text
         logging.debug("Removed captured string from text, updated text: {txt} ".format(txt=str(tmp_text)))
+
         if expression[0] is "capture":
             captures.append(match[-1])
             logging.debug("Appended string {str} to captures".format(str=match[-1]))
@@ -437,14 +444,13 @@ def match_capture(pattern, text):
 
 
 def main():
+    list = match_capture("{0*}1{0*}", "00000100000")
+    print(list)
 
-    pattern = r"(a|b)*"
-    print("Pattern: ", pattern)
-    text = "aaabaaaa"
-
-    print(regex(pattern, text))
-    print(match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
-
+    if (len(list[0]) == len(list[1])):
+        print(True)
+    else:
+        print(False)
 
 if __name__ == '__main__':
     main()

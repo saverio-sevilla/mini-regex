@@ -75,7 +75,12 @@ class TestRegex(unittest.TestCase):
 
     def test_capture(self):
         self.assertEqual(match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"), ['A', '328', '32', '67'])
-
+        self.assertEqual(match_capture("{[a-z]*}-{[a-z]*}", "first-second"), ['first', 'second'])
+        self.assertEqual(match_capture("text-{a|b|c}-text", "text-a-text"), ['a'])
+        self.assertEqual(match_capture("a*b*{c*}d*", "aaabbbccccccccd"), ['cccccccc'])
+        self.assertEqual(match_capture("a{(d|b|c)}{(1|2)}", "ad2"), ['d', '2'])
+        self.assertEqual(match_capture("{a?}{b?}{cde*}", "cdeeeee"), ['', '', 'cdeeeee'])
+        self.assertEqual(match_capture("{0*}1{0*}", "00000100000"), ['00000', '00000'])
 
 
 if __name__ == '__main__':
