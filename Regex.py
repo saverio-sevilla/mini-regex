@@ -259,6 +259,8 @@ class NFAbuilder(object):
         for token in self.tokens:
             if token.type is CHAR:
                 self.char_nfa(token)
+            elif token.type is DOT:
+                self.dot_nfa(token)
             elif token.type is CONCAT:
                 self.concat_nfa()
             elif token.type is QMARK:
@@ -275,6 +277,15 @@ class NFAbuilder(object):
         start_state = State()
         end_state = State()
         start_state.create_transition(token.value, end_state)
+        end_state.is_end = True
+        nfa = NFA(start_state, end_state)
+        self.nfa_stack.append(nfa)
+
+    def dot_nfa(self, token):
+        start_state = State()
+        end_state = State()
+        start_state.create_transition(token.value, end_state)
+        start_state.wildcard = end_state
         end_state.is_end = True
         nfa = NFA(start_state, end_state)
         self.nfa_stack.append(nfa)
@@ -444,13 +455,8 @@ def match_capture(pattern, text):
 
 
 def main():
-    my_list = match_capture("{0*}1{0*}", "00000100000")
+    my_list = match_capture("{...}", "...")
     print(my_list)
-
-    if len(my_list[0]) == len(my_list[1]):
-        print(True)
-    else:
-        print(False)
 
 
 if __name__ == '__main__':
