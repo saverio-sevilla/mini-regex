@@ -135,7 +135,7 @@ class State(object):
 
         self.name = name
         self.epsilon_transitions = []
-        self.transitions = {}
+        self.transitions = {}  # Change dictionary
         self.is_end = False
         super().__init__()
 
@@ -150,7 +150,7 @@ class State(object):
     def __repr__(self):
         return str(self)
 
-    def create_transition(self, key, state):
+    def create_transition(self, key, state):  # Change for new dictionary, use set_key
         if key in self.transitions:
             self.transitions[key].append(state)
         else:
