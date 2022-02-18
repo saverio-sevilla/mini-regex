@@ -427,7 +427,7 @@ def match_capture(pattern, text):
     logging.debug("Expressions: ", expressions)
 
     for expression in expressions:
-        match = regex(str(expression[1]), tmp_text, "start_capture")
+        match = list(regex(str(expression[1]), tmp_text, "start_capture"))
         if not match:
             logging.warning("Match not found between capture pattern"
                             " {pt} and string {str}".format(pt=expression[1], str=str(tmp_text)))
@@ -444,13 +444,14 @@ def match_capture(pattern, text):
 
 
 def main():
-    list = match_capture("{0*}1{0*}", "00000100000")
-    print(list)
+    my_list = match_capture("{0*}1{0*}", "00000100000")
+    print(my_list)
 
-    if (len(list[0]) == len(list[1])):
+    if len(my_list[0]) == len(my_list[1]):
         print(True)
     else:
         print(False)
+
 
 if __name__ == '__main__':
     main()
