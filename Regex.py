@@ -2,7 +2,7 @@
 
 import logging
 from PreprocessorLists import Preprocessor
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.WARNING)
 
 
 class Token:
@@ -416,14 +416,42 @@ def parse_capture(pattern):
     logging.debug("Called parse_capture on pattern {ptrn}".format(ptrn=pattern))
     return tokens
 
+def replace_match(pattern, text):
+    match = list(regex(pattern, text, "start_capture"))
+    if not match:
+        logging.warning("Match not found between capture pattern"
+                        " {pt} and string {str}".format(pt=pattern, str=str(text)))
+        return False
+    text = text.replace(match[-1], "", 1)  # Remove the matched string in the text
+    logging.debug("Removed captured string from text, updated text: {txt} ".format(txt=str(text)))
+    return match[-1], text
 
 def match_capture(pattern, text):
     tmp_text = text
     strings = parse_capture(pattern)
-    expressions = []
+    logging.error(f"Parsed string: {strings}")
     captures = []
 
-    logging.debug("Strings: ", strings)
+    for index, string in enumerate(strings):
+        if strings[index - 1] is '{':
+            print("Capture", string)
+            match, tmp_text = replace_match(string, tmp_text)
+            captures.append(match)
+        elif string in '{}':
+            pass
+        else:
+            print("Normal" ,string)
+            match, tmp_text = replace_match(string, tmp_text)
+
+    return captures
+
+
+def match_capture2(pattern, text):
+    tmp_text = text
+    strings = parse_capture(pattern)
+    logging.debug(f"Parsed string: {strings}")
+    expressions = []
+    captures = []
 
     for i, string in enumerate(strings):
         if string not in '{}':
@@ -435,7 +463,7 @@ def match_capture(pattern, text):
                 else:
                     expressions.append(["normal", strings[i]])
 
-    logging.debug("Expressions: ", expressions)
+    logging.debug("Expressions: ", str(expressions))
 
     for expression in expressions:
         match = list(regex(str(expression[1]), tmp_text, "start_capture"))
@@ -455,8 +483,10 @@ def match_capture(pattern, text):
 
 
 def main():
-    my_list = match_capture("{...}", "...")
+    my_list = match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}-23*", "A328-32-67-23333")
+    my_list2 = match_capture2("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}-23*", "A328-32-67-23333")
     print(my_list)
+    print(my_list2)
 
 
 if __name__ == '__main__':
