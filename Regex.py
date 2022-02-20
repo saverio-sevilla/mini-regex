@@ -284,8 +284,8 @@ class NFAbuilder(object):
     def dot_nfa(self, token):
         start_state = State()
         end_state = State()
+        start_state.epsilon_transitions.append(end_state)
         start_state.create_transition(token.value, end_state)
-        start_state.wildcard = end_state
         end_state.is_end = True
         nfa = NFA(start_state, end_state)
         self.nfa_stack.append(nfa)
@@ -409,7 +409,6 @@ def regex(pattern, text, mode="standard"):
         match = automaton.match_text(text)
         return match
 
-
 def parse_capture(pattern):
     tokens = pattern.replace("{", "\n{\n").replace("}", "\n}\n").split("\n")
     tokens = list(filter(None, tokens))
@@ -429,64 +428,25 @@ def replace_match(pattern, text):
 def match_capture(pattern, text):
     tmp_text = text
     strings = parse_capture(pattern)
-    logging.error(f"Parsed string: {strings}")
+    logging.debug(f"Parsed string: {strings}")
     captures = []
 
     for index, string in enumerate(strings):
         if strings[index - 1] is '{':
-            print("Capture", string)
             match, tmp_text = replace_match(string, tmp_text)
             captures.append(match)
         elif string in '{}':
             pass
         else:
-            print("Normal" ,string)
             match, tmp_text = replace_match(string, tmp_text)
 
     return captures
 
 
-def match_capture2(pattern, text):
-    tmp_text = text
-    strings = parse_capture(pattern)
-    logging.debug(f"Parsed string: {strings}")
-    expressions = []
-    captures = []
-
-    for i, string in enumerate(strings):
-        if string not in '{}':
-            if i == 0:
-                expressions.append(["normal", strings[i]])
-            if i > 0:
-                if strings[i-1] is '{':
-                    expressions.append(["capture", strings[i]])
-                else:
-                    expressions.append(["normal", strings[i]])
-
-    logging.debug("Expressions: ", str(expressions))
-
-    for expression in expressions:
-        match = list(regex(str(expression[1]), tmp_text, "start_capture"))
-        if not match:
-            logging.warning("Match not found between capture pattern"
-                            " {pt} and string {str}".format(pt=expression[1], str=str(tmp_text)))
-            return False
-
-        tmp_text = tmp_text.replace(match[-1], "", 1)  # Remove the matched string from the text
-        logging.debug("Removed captured string from text, updated text: {txt} ".format(txt=str(tmp_text)))
-
-        if expression[0] is "capture":
-            captures.append(match[-1])
-            logging.debug("Appended string {str} to captures".format(str=match[-1]))
-
-    return captures
-
-
 def main():
+
     my_list = match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}-23*", "A328-32-67-23333")
-    my_list2 = match_capture2("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}-23*", "A328-32-67-23333")
     print(my_list)
-    print(my_list2)
 
 
 if __name__ == '__main__':
