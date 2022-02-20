@@ -436,14 +436,14 @@ def match_capture(pattern, text):
     logging.debug(f"Parsed string: {strings}")
     captures = []
 
-    for index, string in enumerate(strings):
+    for index, token in enumerate(strings):
         if strings[index - 1] is '{':
-            match, tmp_text = replace_match(string, tmp_text)
+            match, tmp_text = replace_match(token, tmp_text)
             captures.append(match)
-        elif string in '{}':
+        elif token in '{}':
             pass
         else:
-            match, tmp_text = replace_match(string, tmp_text)
+            match, tmp_text = replace_match(token, tmp_text)
 
     return captures
 
