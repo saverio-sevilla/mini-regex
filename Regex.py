@@ -2,6 +2,8 @@
 
 import logging
 from PreprocessorLists import Preprocessor
+import string
+
 logging.basicConfig(level=logging.WARNING)
 
 
@@ -284,8 +286,8 @@ class NFAbuilder(object):
     def dot_nfa(self, token):
         start_state = State()
         end_state = State()
-        start_state.epsilon_transitions.append(end_state)
-        start_state.create_transition(token.value, end_state)
+        for char in string.printable:
+            start_state.create_transition(char, end_state)
         end_state.is_end = True
         nfa = NFA(start_state, end_state)
         self.nfa_stack.append(nfa)
@@ -409,11 +411,13 @@ def regex(pattern, text, mode="standard"):
         match = automaton.match_text(text)
         return match
 
+
 def parse_capture(pattern):
     tokens = pattern.replace("{", "\n{\n").replace("}", "\n}\n").split("\n")
     tokens = list(filter(None, tokens))
     logging.debug("Called parse_capture on pattern {ptrn}".format(ptrn=pattern))
     return tokens
+
 
 def replace_match(pattern, text):
     match = list(regex(pattern, text, "start_capture"))
@@ -424,6 +428,7 @@ def replace_match(pattern, text):
     text = text.replace(match[-1], "", 1)  # Remove the matched string in the text
     logging.debug("Removed captured string from text, updated text: {txt} ".format(txt=str(text)))
     return match[-1], text
+
 
 def match_capture(pattern, text):
     tmp_text = text
@@ -447,6 +452,7 @@ def main():
 
     my_list = match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}-23*", "A328-32-67-23333")
     print(my_list)
+    print(regex("...", "abc"))
 
 
 if __name__ == '__main__':
