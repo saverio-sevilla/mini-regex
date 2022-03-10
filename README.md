@@ -1,6 +1,6 @@
 # Regex engine 
 
-A small regex engine written in Python, follow standard regex syntax. The engine can be used to match a regex pattern to the beginning or end of a string or anywhere inside a given string. 
+A small regex engine written in Python, follows standard regex syntax. The engine can be used to match a regex pattern to the beginning or end of a string or anywhere inside a given string. 
 
 The basic regex match function is:
 
@@ -49,7 +49,7 @@ will return:
 ## Features
 
 ### Operators and quantifiers
-All quantifiers are greedy in both the stardard regex mode and the match_capture function, to this moment backtracking is not supported.
+All quantifiers are greedy in both the stardard regex mode and the match_capture function, backtracking is not supported.
 - \* -> match zero or more times  
 - \+ -> match one or more times
 - ? -> match zero or one time
