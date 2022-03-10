@@ -49,13 +49,15 @@ will return:
 ## Features
 
 ### Operators and quantifiers
-- * -> match zero or more times  
-- + -> match one or more times
+All quantifiers are greedy in both the stardard regex mode and the match_capture function, to this moment backtracking is not supported
+- \* -> match zero or more times  
+- \+ -> match one or more times
 - ? -> match zero or one time
 - | -> OR operator
 - Ranges (syntax: /(expr)[n:m]/ ) will match the expression between n and m times
 
 ### Groups
+These constructs help with matching characters which belong to a common type
 - [0-9] -> match any digit 
 - [a-z] -> match any lower case character
 - [A-Z] -> match any upper case character
