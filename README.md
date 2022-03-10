@@ -23,14 +23,14 @@ The mode `words` is still being developed, it returns a match between the regex 
 The function:
 
 ```
-capture_greedy(pattern, text)
+match_capture(pattern, text)
 ```
 
 returns performs a match between a pattern and a string and returns the group of captures strings. 
 For example the call:
 
 ```
-capture_greedy("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
+match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
 ```
 will return
 ```
@@ -39,7 +39,7 @@ will return
 
 ## Syntax
 
-- operators *, +, ?, | with their usual meanings
+- operators *, +, ?, | from standard regex syntax
 - round parentheses to group expressions (ex. (abc)*, (a|b|c) )
 - special expressions [0-9], [a-z], [a-zA-Z0-9]
 - escape sequences of type backslash plus a reserved character, which will be matches like a literal
