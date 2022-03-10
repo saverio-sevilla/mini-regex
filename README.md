@@ -48,13 +48,14 @@ will return:
 
 ## Features
 
-###Operators
+### Operators and quantifiers
 - * -> match zero or more times  
 - + -> match one or more times
 - ? -> match zero or one time
 - | -> OR operator
+- Ranges (syntax: /(expr)[n:m]/ ) will match the expression between n and m times
 
-###Groups
+### Groups
 - [0-9] -> match any digit 
 - [a-z] -> match any lower case character
 - [A-Z] -> match any upper case character
@@ -62,15 +63,10 @@ will return:
 - [chars] matches any character in group enclosed by parenthesis, ex. [abcd]
 - "." (wildcard) matches any character
 
-###Escapes
+### Escapes
 - \w -> matches any alphabetic character 
 - \d -> matches numeral character
 - \s -> matches whitespace
+- \(reserved_character) -> will treat the reserved character as a literal to match
 
-- operators *, +, ?, | from standard regex syntax
-- round parentheses to group expressions (ex. (abc)*, (a|b|c) )
-- special expressions [0-9], [a-z], [a-zA-Z0-9]
-- escape sequences of type backslash plus a reserved character, which will be matches like a literal
-- special escape sequences /w (any letter, upper or lowercase), /d (any digit) and [sym] (any symbol) 
-- shorthand syntax for alternatives using square parentheses, `[123abc]` will be expanded into `(1|2|3|a|b)`
-- ranges with syntax `/(expr)[lower_bound:upper_bound]/` 
+
