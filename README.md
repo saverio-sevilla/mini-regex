@@ -31,19 +31,17 @@ match_capture(pattern, text)
 attempts to match the pattern with a user provided string passed as the second argument. It returns a list of captured strings, it will
 fail with an error message if a suitable match is not found for one of the expressions to capture. Backtracking is not performed.
 
-For example the call:
+As an example the calls:
 ```
 match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
+```
+```
+match_capture("{[a-z]*}-{[a-z]*}", "first-second")
 ```
 will return:
 ```
 ['A', '328', '32', '67']
 ```
-Or
-```
-match_capture("{[a-z]*}-{[a-z]*}", "first-second")
-```
-will return: 
 ```
 ['first', 'second]
 ```
