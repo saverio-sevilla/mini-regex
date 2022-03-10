@@ -2,7 +2,7 @@
 
 A small regex engine written in Python to get familiar with NFA, the grammar rules mostly follow the Python regular expression library, with some exceptions. The engine can be used to match a regex pattern to the beginning or end of a string or anywhere inside a given string. 
 
-The basic match command is:
+The basic regex match function is:
 
 ```
 regex(pattern, text, mode="standard")
@@ -17,24 +17,35 @@ regex("abc*\d", "abccc1)
 ```
 returns `true`
 
-The mode `words` is still being developed, it returns a match between the regex and every word of a text, split at whitespaces. Ideally I'd want to add support for custom separators and match modes.
-
+This function can be applied to more complex regex expressions, such as:
+```
+regex("^(a|b|c)(1|2|3)", "a23")
+```
+which returns true.
 
 The function:
-
 ```
 match_capture(pattern, text)
 ```
 
-returns performs a match between a pattern and a string and returns the group of captures strings. 
-For example the call:
+attempts to match the pattern with a user provided string passed as the second argument. It returns a list of captured strings, it will
+fail with an error message if a suitable match is not found for one of the expressions to capture. Backtracking is not performed.
 
+For example the call:
 ```
 match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"))
 ```
-will return
+will return:
 ```
 ['A', '328', '32', '67']
+```
+Or
+```
+match_capture("{[a-z]*}-{[a-z]*}", "first-second")
+```
+will return: 
+```
+['first', 'second]
 ```
 
 ## Syntax
