@@ -71,4 +71,8 @@ These constructs help with matching characters which belong to a common type
 - \s -> matches whitespace
 - \(reserved_character) -> will treat the reserved character as a literal to match
 
+### Modifiers
+- ^ causes the regex function to match the pattern to the beginning of a string (ex: "^ab")
+- $ causes the regex function to match to the end of the string (ex: "abc$")
+
 
