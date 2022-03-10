@@ -46,7 +46,26 @@ will return:
 ['first', 'second]
 ```
 
-## Syntax
+## Features
+
+###Operators
+- * -> match zero or more times  
+- + -> match one or more times
+- ? -> match zero or one time
+- | -> OR operator
+
+###Groups
+- [0-9] -> match any digit 
+- [a-z] -> match any lower case character
+- [A-Z] -> match any upper case character
+- [a-zA-Z0-9] -> match any alphanumeric character
+- [chars] matches any character in group enclosed by parenthesis, ex. [abcd]
+- "." (wildcard) matches any character
+
+###Escapes
+- \w -> matches any alphabetic character 
+- \d -> matches numeral character
+- \s -> matches whitespace
 
 - operators *, +, ?, | from standard regex syntax
 - round parentheses to group expressions (ex. (abc)*, (a|b|c) )
