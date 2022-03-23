@@ -1,5 +1,5 @@
 import unittest
-from Regex import regex, match_capture, parse_capture
+from Regex import regex, match_capture, RegexBuilder
 
 class TestRegex(unittest.TestCase):
 
@@ -87,6 +87,15 @@ class TestRegex(unittest.TestCase):
         self.assertEqual(match_capture("a{(d|b|c)}{(1|2)}", "ad2"), ['d', '2'])
         self.assertEqual(match_capture("{a?}{b?}{cde*}", "cdeeeee"), ['', '', 'cdeeeee'])
         self.assertEqual(match_capture("{0*}1{0*}", "00000100000"), ['00000', '00000'])
+
+    def test_new_method(self):
+        test = RegexBuilder("...")
+        matcher = test.build_matcher()
+        self.assertEqual(matcher.match("aab"), True)
+
+        test = RegexBuilder("a*b*c?(d|e)")
+        matcher = test.build_matcher()
+        self.assertEqual(matcher.match("aaabbe"), True)
 
 
 if __name__ == '__main__':

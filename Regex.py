@@ -3,6 +3,7 @@
 import logging
 from PreprocessorLists import Preprocessor
 import string
+from abc import ABC, abstractmethod
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -355,6 +356,78 @@ class NFAbuilder(object):
         nfa = NFA(start_state, end_state)
         self.nfa_stack.append(nfa)
 
+class Matcher(ABC):
+    @abstractmethod
+    def match(self, text):
+        pass
+
+class StandardMatcher(Matcher):
+    def __init__(self, automaton):
+        self.automaton = automaton
+
+    def match(self, text):
+        match = self.automaton.match(text)
+        return match
+
+
+class BackMatcher(Matcher):
+    def __init__(self, automaton):
+        self.automaton = automaton
+
+    def match(self, text):
+        match = self.automaton.match_at_end(text)
+        return match
+
+
+class FrontMatcher(Matcher):
+    def __init__(self, automaton):
+        self.automaton = automaton
+
+    def match(self, text):
+        match = self.automaton.match_at_beginning(text)
+        return match
+
+
+
+class RegexBuilder():
+
+    def __init__(self, pattern):
+        self.pattern = pattern
+        self.automaton = None
+
+    def compile(self) -> NFA:
+        preprocessor = Preprocessor(self.pattern)
+        self.pattern = preprocessor.preprocess()
+        lexer = Lexer(self.pattern)
+        parser = Parser(lexer)
+        postfix_pattern = parser.postfix()
+
+        nfa_stack = NFAbuilder(postfix_pattern).analyse()
+
+        if len(nfa_stack) != 1:
+            logging.error("The NFA stack has length other than 1")
+
+        return nfa_stack[0]
+
+    def build_matcher(self) -> Matcher:
+
+        if self.pattern in ("", "$", "^"):
+            raise SyntaxError("The pattern entered is not valid (empty or contains only $, ^) ")
+
+        if self.pattern[0] == '^':
+            self.pattern = self.pattern[1:]
+            automaton = self.compile()
+            return FrontMatcher(automaton)
+
+        elif self.pattern[-1] == '$':
+            self.pattern = self.pattern[:-1]
+            automaton = self.compile()
+            return BackMatcher(automaton)
+
+        automaton = self.compile()
+        return StandardMatcher(automaton)
+
+
 
 def regex(pattern, text, mode="standard"):
 
@@ -412,15 +485,38 @@ def regex(pattern, text, mode="standard"):
         return match
 
 
-def parse_capture(pattern):
+def capture_handler(pattern, text):
+
+    if pattern == "":
+        if text == "":
+            return True
+        return False
+
+    preprocessor = Preprocessor(pattern)
+    pattern = preprocessor.preprocess()
+    lexer = Lexer(pattern)
+    parser = Parser(lexer)
+    postfix_pattern = parser.postfix()
+
+    nfa_stack = NFAbuilder(postfix_pattern).analyse()
+
+    if len(nfa_stack) != 1:
+        logging.error("The NFA stack has length other than 1")
+
+    automaton = nfa_stack[0]
+    match = automaton.match_at_beginning(text)
+    return match
+
+
+def parse_capture_pattern(pattern):
     tokens = pattern.replace("{", "\n{\n").replace("}", "\n}\n").split("\n")
     tokens = list(filter(None, tokens))
     logging.debug("Called parse_capture on pattern {ptrn}".format(ptrn=pattern))
     return tokens
 
 
-def replace_match(pattern, text):
-    match = list(regex(pattern, text, "start_capture"))
+def remove_matched_string(pattern, text):
+    match = list(capture_handler(pattern, text))
     if not match:
         logging.error("Match not found between capture pattern"
                         " {pt} and string {str}".format(pt=pattern, str=str(text)))
@@ -432,18 +528,18 @@ def replace_match(pattern, text):
 
 def match_capture(pattern, text):
     tmp_text = text
-    strings = parse_capture(pattern)
+    strings = parse_capture_pattern(pattern)
     logging.debug(f"Parsed string: {strings}")
     captures = []
 
     for index, token in enumerate(strings):
         if strings[index - 1] is '{':
-            match, tmp_text = replace_match(token, tmp_text)
+            match, tmp_text = remove_matched_string(token, tmp_text)
             captures.append(match)
         elif token in '{}':
             pass
         else:
-            match, tmp_text = replace_match(token, tmp_text)
+            match, tmp_text = remove_matched_string(token, tmp_text)
 
     return captures
 
@@ -453,6 +549,10 @@ def main():
     my_list = match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}-23*", "A328-32-67-23333")
     print(my_list)
     print(regex("...", "abc"))
+
+    test = RegexBuilder("...")
+    matcher = test.build_matcher()
+    print(matcher.match("aab"))
 
 
 if __name__ == '__main__':
