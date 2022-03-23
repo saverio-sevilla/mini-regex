@@ -262,7 +262,7 @@ class NFAbuilder(object):
             if token.type is CHAR:
                 self.char_nfa(token)
             elif token.type is DOT:
-                self.dot_nfa(token)
+                self.dot_nfa()
             elif token.type is CONCAT:
                 self.concat_nfa()
             elif token.type is QMARK:
@@ -283,7 +283,7 @@ class NFAbuilder(object):
         nfa = NFA(start_state, end_state)
         self.nfa_stack.append(nfa)
 
-    def dot_nfa(self, token):
+    def dot_nfa(self):
         start_state = State()
         end_state = State()
         for char in string.printable:
@@ -422,7 +422,7 @@ def parse_capture(pattern):
 def replace_match(pattern, text):
     match = list(regex(pattern, text, "start_capture"))
     if not match:
-        logging.warning("Match not found between capture pattern"
+        logging.error("Match not found between capture pattern"
                         " {pt} and string {str}".format(pt=pattern, str=str(text)))
         return False
     text = text.replace(match[-1], "", 1)  # Remove the matched string in the text

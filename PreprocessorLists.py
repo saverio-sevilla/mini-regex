@@ -29,7 +29,7 @@ class Preprocessor:
 
         self.text = self.text.replace('[a-z]', LOWER).replace('[A-Z]', UPPER).replace('[0-9]', NUMBERS)
         self.text = self.text.replace('[a-zA-Z0-9]', ALPHANUM)
-        self.text = self.text.replace('\w', LETTERS).replace('\d', NUMBERS).replace('\s', ' ')
+        self.text = self.text.replace('\w', LETTERS).replace('\d', NUMBERS).replace('\s', ' |   ')
 
     def handle_alternatives(self):
 
@@ -104,4 +104,3 @@ class Preprocessor:
         self.check_parentheses()
 
         return self.text
-

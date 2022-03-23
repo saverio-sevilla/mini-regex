@@ -33,6 +33,7 @@ class TestRegex(unittest.TestCase):
         self.assertEqual(regex("(abc|cba)","cba"), True)
 
     def test_match_begin(self):
+        # Tests the match at beginning function
         self.assertEqual(regex("^abc", "abcd"), True)
         self.assertEqual(regex("^123", "12345"), True)
         self.assertEqual(regex("^123", "123"), True)
@@ -44,6 +45,7 @@ class TestRegex(unittest.TestCase):
         self.assertEqual(regex("^(a|b|c)(1|2|3)", "a23"), True)
 
     def text_match_end(self):
+        # Tests the match at end function
         self.assertEqual(regex("abc$", "1abc"), True)
         self.assertEqual(regex("abc$", "abc"), True)
         self.assertEqual(regex("abc$", "1abcd"), True)
@@ -51,11 +53,13 @@ class TestRegex(unittest.TestCase):
         self.assertEqual(regex("$", ""), False)
 
     def test_alternation_macro(self):
+        # Tests the expansion of the alternative macro ex.[abc]
         self.assertEqual(regex("[abcdef]d", "fd"), True)
         self.assertEqual(regex("[123][1234][567]d", "247d"), True)
         self.assertEqual(regex("[a]d", "ad"), True)
 
     def test_range_macro(self):
+        # Tests the expansion of the range macro
         self.assertEqual(regex("/(abc)[2:5]/", "abcabc"), True)
         self.assertEqual(regex("/(1)[5:7]/", "11111"), True)
         self.assertEqual(regex("/(1)[5:7]/", "11111111"), False)
@@ -68,12 +72,14 @@ class TestRegex(unittest.TestCase):
         self.assertEqual(regex("123-/(abc|abd)[2:3]/-567?", "123-abcabdabc-56"), True)
 
     def test_combination(self):
+        # Complex cases
         self.assertEqual(regex("a*b*c?(d|e)", "aaabbe"), True)
         self.assertEqual(regex("(a|b)*(e|f|g)?", "bbbabbbbbg"), True) # * has higher priority than |
         self.assertEqual(regex("(a*|b*)(e|f|g)?", "bbbabbbbbg"), False)
         self.assertEqual(regex("((a|b)|(c|d))", "a"), True)
 
     def test_capture(self):
+        # Tests the capture function
         self.assertEqual(match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}", "A328-32-67"), ['A', '328', '32', '67'])
         self.assertEqual(match_capture("{[a-z]*}-{[a-z]*}", "first-second"), ['first', 'second'])
         self.assertEqual(match_capture("text-{a|b|c}-text", "text-a-text"), ['a'])
