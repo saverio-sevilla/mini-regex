@@ -97,6 +97,10 @@ class TestRegex(unittest.TestCase):
         matcher = test.build_matcher()
         self.assertEqual(matcher.match("aaabbe"), True)
 
+        test = RegexBuilder("abc$")
+        matcher = test.build_matcher()
+        self.assertEqual(matcher.match("123abc"), True)
+
 
 if __name__ == '__main__':
     unittest.main()

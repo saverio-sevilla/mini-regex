@@ -376,7 +376,7 @@ class BackMatcher(Matcher):
 
     def match(self, text):
         match = self.automaton.match_at_end(text)
-        return match
+        return bool(match)
 
 
 class FrontMatcher(Matcher):
@@ -385,7 +385,7 @@ class FrontMatcher(Matcher):
 
     def match(self, text):
         match = self.automaton.match_at_beginning(text)
-        return match
+        return bool(match)
 
 
 
@@ -553,6 +553,8 @@ def main():
     test = RegexBuilder("...")
     matcher = test.build_matcher()
     print(matcher.match("aab"))
+
+    print("Match end: ", bool(regex("abc$", "1abc")))
 
 
 if __name__ == '__main__':
