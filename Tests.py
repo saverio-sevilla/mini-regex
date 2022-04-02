@@ -1,82 +1,78 @@
 import unittest
-from Regex import regex, match_capture, RegexBuilder
+from Regex import simple_match, match_capture, RegexBuilder, simple_match
+
 
 class TestRegex(unittest.TestCase):
 
     def test_basic(self):
         # basic equalities and limit cases
-        self.assertEqual(regex("abc", "abc"), True)
-        self.assertEqual(regex("",""), True)
-        self.assertEqual(regex(" "," "), True)
-        self.assertEqual(regex("a","a"), True)
-        self.assertEqual(regex(" ",""), False)
-        self.assertEqual(regex("","abc"), False)
-        self.assertEqual(regex("abc",""), False)
+        self.assertEqual(simple_match("abc", "abc"), True)
+        self.assertEqual(simple_match(" ", " "), True)
+        self.assertEqual(simple_match("a", "a"), True)
+        self.assertEqual(simple_match(" ", ""), False)
+        self.assertEqual(simple_match("abc", ""), False)
 
     def test_operators(self):
         # basic equalities and limit cases
-        self.assertEqual(regex("a*", "aaa"), True)
-        self.assertEqual(regex("abc*","abccccc"), True)
-        self.assertEqual(regex("abc*","ab"), True)
-        self.assertEqual(regex("a*",""), True)
+        self.assertEqual(simple_match("a*", "aaa"), True)
+        self.assertEqual(simple_match("abc*", "abccccc"), True)
+        self.assertEqual(simple_match("abc*", "ab"), True)
+        self.assertEqual(simple_match("a*", ""), True)
         # Plus operator
-        self.assertEqual(regex("a+", "aaaaa"), True)
-        self.assertEqual(regex("ba+","b"), False)
-        self.assertEqual(regex("ba+","ba"), True)
+        self.assertEqual(simple_match("a+", "aaaaa"), True)
+        self.assertEqual(simple_match("ba+", "b"), False)
+        self.assertEqual(simple_match("ba+", "ba"), True)
         # Question operator
-        self.assertEqual(regex("bac?", "bac"), True)
-        self.assertEqual(regex("bac?","ba"), True)
-        self.assertEqual(regex("bac?","bacc"), False)
+        self.assertEqual(simple_match("bac?", "bac"), True)
+        self.assertEqual(simple_match("bac?", "ba"), True)
+        self.assertEqual(simple_match("bac?", "bacc"), False)
         # Alt operator
-        self.assertEqual(regex("a(a|b|c)", "ab"), True)
-        self.assertEqual(regex("(a|b|c)(a|b|c)","ba"), True)
-        self.assertEqual(regex("(abc|cba)","cba"), True)
+        self.assertEqual(simple_match("a(a|b|c)", "ab"), True)
+        self.assertEqual(simple_match("(a|b|c)(a|b|c)", "ba"), True)
+        self.assertEqual(simple_match("(abc|cba)", "cba"), True)
 
     def test_match_begin(self):
         # Tests the match at beginning function
-        self.assertEqual(regex("^abc", "abcd"), True)
-        self.assertEqual(regex("^123", "12345"), True)
-        self.assertEqual(regex("^123", "123"), True)
-        self.assertEqual(regex("^123", "12"), False)
-        self.assertEqual(regex("^123", "abc"), False)
-        self.assertEqual(regex("^", ""), False)
-        self.assertEqual(regex("^", " "), False)
-        self.assertEqual(regex("^", "abc"), False)
-        self.assertEqual(regex("^(a|b|c)(1|2|3)", "a23"), True)
+        self.assertEqual(simple_match("^abc", "abcd"), True)
+        self.assertEqual(simple_match("^123", "12345"), True)
+        self.assertEqual(simple_match("^123", "123"), True)
+        self.assertEqual(simple_match("^123", "12"), False)
+        self.assertEqual(simple_match("^123", "abc"), False)
+        self.assertEqual(simple_match("^(a|b|c)(1|2|3)", "a23"), True)
 
     def text_match_end(self):
         # Tests the match at end function
-        self.assertEqual(regex("abc$", "1abc"), True)
-        self.assertEqual(regex("abc$", "abc"), True)
-        self.assertEqual(regex("abc$", "1abcd"), True)
-        self.assertEqual(regex("$", "abc"), False)
-        self.assertEqual(regex("$", ""), False)
+        self.assertEqual(simple_match("abc$", "1abc"), True)
+        self.assertEqual(simple_match("abc$", "abc"), True)
+        self.assertEqual(simple_match("abc$", "1abcd"), True)
+        self.assertEqual(simple_match("$", "abc"), False)
+        self.assertEqual(simple_match("$", ""), False)
 
     def test_alternation_macro(self):
         # Tests the expansion of the alternative macro ex.[abc]
-        self.assertEqual(regex("[abcdef]d", "fd"), True)
-        self.assertEqual(regex("[123][1234][567]d", "247d"), True)
-        self.assertEqual(regex("[a]d", "ad"), True)
+        self.assertEqual(simple_match("[abcdef]d", "fd"), True)
+        self.assertEqual(simple_match("[123][1234][567]d", "247d"), True)
+        self.assertEqual(simple_match("[a]d", "ad"), True)
 
     def test_range_macro(self):
         # Tests the expansion of the range macro
-        self.assertEqual(regex("/(abc)[2:5]/", "abcabc"), True)
-        self.assertEqual(regex("/(1)[5:7]/", "11111"), True)
-        self.assertEqual(regex("/(1)[5:7]/", "11111111"), False)
-        self.assertEqual(regex("/(1)[5:7]/", "1111"), False)
-        self.assertEqual(regex("abc/(1)[5:7]/", "abc11111"), True)
-        self.assertEqual(regex("abc/(1)[5:7]/d", "abc11111d"), True)
-        self.assertEqual(regex("/(a?)[5:7]/", "aaa"), True)
-        self.assertEqual(regex("/(abc|abd)[2:3]/", "abdabd"), True)
-        self.assertEqual(regex("/(abc|abd)[2:3]/", "abcabd"), True)
-        self.assertEqual(regex("123-/(abc|abd)[2:3]/-567?", "123-abcabdabc-56"), True)
+        self.assertEqual(simple_match("/(abc)[2:5]/", "abcabc"), True)
+        self.assertEqual(simple_match("/(1)[5:7]/", "11111"), True)
+        self.assertEqual(simple_match("/(1)[5:7]/", "11111111"), False)
+        self.assertEqual(simple_match("/(1)[5:7]/", "1111"), False)
+        self.assertEqual(simple_match("abc/(1)[5:7]/", "abc11111"), True)
+        self.assertEqual(simple_match("abc/(1)[5:7]/d", "abc11111d"), True)
+        self.assertEqual(simple_match("/(a?)[5:7]/", "aaa"), True)
+        self.assertEqual(simple_match("/(abc|abd)[2:3]/", "abdabd"), True)
+        self.assertEqual(simple_match("/(abc|abd)[2:3]/", "abcabd"), True)
+        self.assertEqual(simple_match("123-/(abc|abd)[2:3]/-567?", "123-abcabdabc-56"), True)
 
     def test_combination(self):
-        # Complex cases
-        self.assertEqual(regex("a*b*c?(d|e)", "aaabbe"), True)
-        self.assertEqual(regex("(a|b)*(e|f|g)?", "bbbabbbbbg"), True) # * has higher priority than |
-        self.assertEqual(regex("(a*|b*)(e|f|g)?", "bbbabbbbbg"), False)
-        self.assertEqual(regex("((a|b)|(c|d))", "a"), True)
+        # More complex cases
+        self.assertEqual(simple_match("a*b*c?(d|e)", "aaabbe"), True)
+        self.assertEqual(simple_match("(a|b)*(e|f|g)?", "bbbabbbbbg"), True) # * has higher priority than |
+        self.assertEqual(simple_match("(a*|b*)(e|f|g)?", "bbbabbbbbg"), False)
+        self.assertEqual(simple_match("((a|b)|(c|d))", "a"), True)
 
     def test_capture(self):
         # Tests the capture function
@@ -88,7 +84,7 @@ class TestRegex(unittest.TestCase):
         self.assertEqual(match_capture("{a?}{b?}{cde*}", "cdeeeee"), ['', '', 'cdeeeee'])
         self.assertEqual(match_capture("{0*}1{0*}", "00000100000"), ['00000', '00000'])
 
-    def test_new_method(self):
+    def test_regexbuilder(self):
         test = RegexBuilder("...")
         matcher = test.build_matcher()
         self.assertEqual(matcher.match("aab"), True)
@@ -100,6 +96,7 @@ class TestRegex(unittest.TestCase):
         test = RegexBuilder("abc$")
         matcher = test.build_matcher()
         self.assertEqual(matcher.match("123abc"), True)
+
 
 
 if __name__ == '__main__':

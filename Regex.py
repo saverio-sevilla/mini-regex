@@ -387,6 +387,13 @@ class FrontMatcher(Matcher):
         match = self.automaton.match_at_beginning(text)
         return bool(match)
 
+class CaptureMatcher(Matcher):
+    def __init__(self, automaton):
+        self.automaton = automaton
+
+    def match(self, text):
+        match = self.automaton.match_at_beginning(text)
+        return match
 
 
 class RegexBuilder():
@@ -427,62 +434,15 @@ class RegexBuilder():
         automaton = self.compile()
         return StandardMatcher(automaton)
 
+    def build_capture_matcher(self) -> Matcher:
+        automaton = self.compile()
+        return CaptureMatcher(automaton)
 
 
-def regex(pattern, text, mode="standard"):
-
-    if pattern == "":
-        if text == "":
-            return True
-        return False
-
-    if pattern not in ("", "$", "^"):
-        if pattern[0] == '^':
-            pattern = pattern[1:]
-            mode = "start"
-        elif pattern[-1] == '$':
-            pattern = pattern[:-1]
-            mode = "end"
-
-    preprocessor = Preprocessor(pattern)
-    pattern = preprocessor.preprocess()
-    lexer = Lexer(pattern)
-    parser = Parser(lexer)
-    postfix_pattern = parser.postfix()
-
-    nfa_stack = NFAbuilder(postfix_pattern).analyse()
-
-    if len(nfa_stack) != 1:
-        logging.error("The NFA stack has length other than 1")
-
-    automaton = nfa_stack[0]
-
-    if mode == "standard":
-        match = automaton.match(text)
-        return match
-
-    elif mode == "start_capture":
-        match = automaton.match_at_beginning(text)
-        return match
-
-    elif mode == "start":
-        match = automaton.match_at_beginning(text)
-        if match:
-            return True
-        else:
-            return False
-
-    elif mode == "end":
-        match = automaton.match_at_end(text)
-        return match
-
-    elif mode == "any":
-        match = automaton.match_anywhere(text)
-        return match
-
-    elif mode == "words":
-        match = automaton.match_text(text)
-        return match
+def simple_match(pattern, text):
+    builder = RegexBuilder(pattern)
+    matcher = builder.build_matcher()
+    return matcher.match(text)
 
 
 def capture_handler(pattern, text):
@@ -492,20 +452,9 @@ def capture_handler(pattern, text):
             return True
         return False
 
-    preprocessor = Preprocessor(pattern)
-    pattern = preprocessor.preprocess()
-    lexer = Lexer(pattern)
-    parser = Parser(lexer)
-    postfix_pattern = parser.postfix()
-
-    nfa_stack = NFAbuilder(postfix_pattern).analyse()
-
-    if len(nfa_stack) != 1:
-        logging.error("The NFA stack has length other than 1")
-
-    automaton = nfa_stack[0]
-    match = automaton.match_at_beginning(text)
-    return match
+    builder = RegexBuilder(pattern)
+    matcher = builder.build_capture_matcher()
+    return matcher.match(text)
 
 
 def parse_capture_pattern(pattern):
@@ -548,13 +497,13 @@ def main():
 
     my_list = match_capture("{A}{[0-9]*}-{[0-9]*}-{[0-9]*}-23*", "A328-32-67-23333")
     print(my_list)
-    print(regex("...", "abc"))
+    print(simple_match("...", "abc"))
 
     test = RegexBuilder("...")
     matcher = test.build_matcher()
     print(matcher.match("aab"))
 
-    print("Match end: ", bool(regex("abc$", "1abc")))
+    print("Match end: ", bool(simple_match("abc$", "1abc")))
 
 
 if __name__ == '__main__':
