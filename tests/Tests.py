@@ -1,5 +1,5 @@
 import unittest
-from Regex import simple_match, match_capture, RegexBuilder, simple_match
+from src.Regex import match_capture, RegexBuilder, simple_match
 
 
 class TestRegex(unittest.TestCase):

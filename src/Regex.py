@@ -1,7 +1,7 @@
 # Regex
 
 import logging
-from PreprocessorLists import Preprocessor
+from src.PreprocessorLists import Preprocessor
 import string
 from abc import ABC, abstractmethod
 
@@ -482,7 +482,7 @@ def match_capture(pattern, text):
     captures = []
 
     for index, token in enumerate(strings):
-        if strings[index - 1] is '{':
+        if strings[index - 1] == '{':
             match, tmp_text = remove_matched_string(token, tmp_text)
             captures.append(match)
         elif token in '{}':
